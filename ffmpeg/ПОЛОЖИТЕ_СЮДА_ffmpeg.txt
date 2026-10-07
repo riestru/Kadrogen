@@ -1,0 +1,2 @@
+Сюда нужно положить ffmpeg.exe и ffprobe.exe (сборка для Windows, например с https://www.gyan.dev/ffmpeg/builds/ — архив «essentials»).
+Программа ищет их по пути ffmpeg/ffmpeg.exe рядом с app.py (или KadroGen.exe). В репозиторий они не входят из-за размера (~200 МБ).
