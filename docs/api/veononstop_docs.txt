@@ -1,0 +1,1390 @@
+
+VeoNonStop API Documentation
+VeoNonStop API
+v1.0 · REST API
+Getting Started
+🔑 Authentication
+🚀 Quick Start
+🔄 Task Lifecycle
+⚡ Rate Limits
+Video Generation
+POST
+ Text to Video
+POST
+ Image to
+                    Video
+POST
+ Multi-Image
+POST
+ Batch Frame
+Video Status
+GET
+ Poll Status
+POST
+ Cancel Task
+POST
+ Cancel All
+GET
+ Get Result
+GET
+ Download MP4
+Image Generation
+POST
+ Banana
+                    Generate
+POST
+ Banana
+                    Upscale
+Account
+GET
+ Account Info
+GET
+ Account Usage
+VeoNonStop API
+Generate stunning AI videos and images programmatically. Submit tasks, poll for results, and
+                        download completed media — all through a simple REST API.
+BASE URL
+https://veononstop.org/api/v1
+🔑 Authentication
+All API requests require an API key passed
+                        via the 
+X-API-Key
+ header.
+Copy
+curl -H 
+"X-API-Key: veo_your_api_key_here"
+ \
+     https://veononstop.org/api/v1/account/info
+📌 How to get your API key
+                        Contact the administrator to create an API key for your account. Keys are prefixed with
+veo_
+ and tied to your subscription plan.
+🚀 Quick Start
+Generate your first video in 3 steps:
+1. Submit Task
+→
+2. Poll Status
+→
+3. Get Video URL
+Complete Example (Python)
+Copy
+import
+ requests, time
+API_KEY = 
+"veo_your_api_key_here"
+BASE    = 
+"https://veononstop.org/api/v1"
+HEADERS = {
+"X-API-Key"
+: API_KEY, 
+"Content-Type"
+: 
+"application/json"
+}
+# 1. Submit a text-to-video task
+resp = requests.post(f
+"{BASE}/video/text-to-video"
+, json={
+"prompt"
+: 
+"A whale jumping out of the ocean at sunset"
+,
+"aspect_ratio"
+: 
+"16:9"
+}, headers=HEADERS)
+task_id = resp.json()[
+"data"
+][
+"task_id"
+]
+print(f
+"Task created: {task_id}"
+)
+# 2. Poll until completed (typically 1-3 minutes)
+while True
+:
+    status = requests.get(f
+"{BASE}/video/status/{task_id}"
+, headers=HEADERS).json()
+    state  = status[
+"data"
+][
+"status"
+]
+    print(f
+"  Status: {state}"
+)
+if
+ state == 
+"completed"
+:
+        videos = status[
+"data"
+][
+"videos"
+]
+        print(f
+"✅ Done! {len(videos)} video(s) ready"
+)
+for
+ v 
+in
+ videos:
+            print(f
+"   Download: {v['fifeUrl']}"
+)
+break
+elif
+ state == 
+"failed"
+:
+        print(f
+"❌ Failed: {status['data'].get('error')}"
+)
+break
+    time.sleep(
+10
+)  
+# Poll every 10 seconds
+Complete Example (JavaScript / Node.js)
+Copy
+const
+ API_KEY = 
+"veo_your_api_key_here"
+;
+const
+ BASE    = 
+"https://veononstop.org/api/v1"
+;
+const
+ headers = { 
+"X-API-Key"
+: API_KEY, 
+"Content-Type"
+: 
+"application/json"
+ };
+// 1. Submit task
+const
+ res = 
+await
+ fetch(`${BASE}/video/text-to-video`, {
+  method: 
+"POST"
+,
+  headers,
+  body: JSON.stringify({
+    prompt: 
+"A whale jumping out of the ocean at sunset"
+,
+    aspect_ratio: 
+"16:9"
+  })
+});
+const
+ { data } = 
+await
+ res.json();
+console.log(
+`Task: ${data.task_id}`
+);
+// 2. Poll until done
+while
+ (
+true
+) {
+await new
+ Promise(r => setTimeout(r, 
+10000
+));
+const
+ poll = 
+await
+ fetch(`${BASE}/video/status/${data.task_id}`, { headers });
+const
+ status = (
+await
+ poll.json()).data;
+  console.log(
+`  Status: ${status.status}`
+);
+if
+ (status.status === 
+"completed"
+) {
+    console.log(
+"✅ Videos:"
+, status.videos.map(v => v.fifeUrl));
+break
+;
+  }
+if
+ (status.status === 
+"failed"
+) {
+    console.error(
+"❌ Error:"
+, status.error);
+break
+;
+  }
+}
+Complete Example (cURL)
+Copy
+# 1. Submit task
+curl -X POST https://veononstop.org/api/v1/video/text-to-video \
+  -H 
+"X-API-Key: veo_your_api_key_here"
+ \
+  -H 
+"Content-Type: application/json"
+ \
+  -d 
+'{"prompt":"A whale jumping out of the ocean","aspect_ratio":"16:9"}'
+# Response: {"success":true,"data":{"task_id":"task_textto_abc123","status":"session_init"}}
+# 2. Poll status (repeat until status = "completed")
+curl https://veononstop.org/api/v1/video/status/task_textto_abc123 \
+  -H 
+"X-API-Key: veo_your_api_key_here"
+# 3. Download the MP4 file
+curl -o video.mp4 https://veononstop.org/api/v1/video/download/task_textto_abc123 \
+  -H 
+"X-API-Key: veo_your_api_key_here"
+🔄 Task Lifecycle
+Every generation request creates a
+task
+ that goes through these states:
+pending
+→
+queued
+→
+session_init
+→
+generating
+→
+polling
+→
+completed
+Status
+Description
+pending
+Task created, awaiting processing
+queued
+Concurrency limit reached — task is in the queue and will start automatically
+session_init
+Acquiring credentials and creating project
+uploading
+Uploading images (I2V, Multi-Image, Batch Frame only)
+generating
+Submitting generation request to AI model
+polling
+Generation in progress — video is being created by the AI
+completed
+Video ready — download URLs available in 
+videos
+ array
+failed
+Generation failed — check 
+error
+ field for details
+💡 Polling Best Practice
+                        Poll every 
+10 seconds
+. Typical generation takes 
+1–3 minutes
+.
+                        Each poll triggers a live status check against the AI model, so you always get the freshest
+                        data.
+⚡ Rate Limits & Plans
+Basic Plan
+4
+concurrent task
+Standard Plan
+12
+concurrent tasks
+VIP Plan
+24
+concurrent tasks
+Task Timeout
+30
+minutes max
+🎬 Video Generation
+POST
+/video/text-to-video
+Generate video from text prompt
+Create a video from a text description. The AI generates a high-quality 8-second video
+                                clip.
+Request Body
+Parameter
+Type
+Description
+prompt
+string
+Required
+Text description of the desired video
+aspect_ratio
+string
+Optional
+"16:9"
+ (landscape) or 
+"9:16"
+ (portrait).
+                                        Default: 
+"16:9"
+count
+integer
+Optional
+Number of videos to generate (1–4). Default: 
+1
+Response
+{
+"success"
+: 
+true
+,
+"data"
+: {
+"task_id"
+: 
+"task_textto_7b9bed6c80ee"
+,
+"type"
+: 
+"text_to_video"
+,
+"status"
+: 
+"session_init"
+,
+"created_at"
+: 
+"2026-03-09T10:22:00.031Z"
+  }
+}
+POST
+/video/image-to-video
+Generate video from image + prompt
+Upload an image and generate a video that animates it based on your prompt.
+Request Body
+Parameter
+Type
+Description
+prompt
+string
+Required
+Text description of how to animate the image
+image_base64
+string
+Required
+Base64-encoded image data (no 
+data:
+ prefix)
+mime_type
+string
+Optional
+"image/jpeg"
+, 
+"image/png"
+, 
+"image/webp"
+.
+                                        Default: 
+"image/jpeg"
+aspect_ratio
+string
+Optional
+"16:9"
+ (landscape) or 
+"9:16"
+ (portrait).
+                                        Default: 
+"9:16"
+count
+integer
+Optional
+Number of videos (1–4). Default: 
+1
+POST
+/video/multi-image-to-video
+Multiple reference images → video
+Upload multiple reference images and generate a video that incorporates elements from all
+                                of them.
+Request Body
+Parameter
+Type
+Description
+prompt
+string
+Required
+Text description of the desired video
+images
+array
+Required
+Array of image objects (see below)
+aspect_ratio
+string
+Optional
+"16:9"
+ or 
+"9:16"
+. Default: 
+"16:9"
+count
+integer
+Optional
+Number of videos (1–4). Default: 
+1
+Image Object
+{
+"name"
+: 
+"Alex"
+,              
+// Placeholder name (Latin characters only, matched against prompt words)
+"image_base64"
+: 
+"base64_encoded_image_data..."
+,
+"mime_type"
+: 
+"image/jpeg"
+}
+🎯 Name-Based Matching
+                                Each image can have a 
+name
+ that acts as a placeholder. The API scans the
+                                prompt for words matching image names (case-insensitive) and uses only the matched
+                                images for generation.
+                                Example: Image named 
+"Alex"
+ + prompt
+"Alex walking in the park"
+                                →
+                                only that image is used.
+                                If no names match → all images are used as fallback.
+⚠️ Latin Characters Only
+                                The 
+name
+ field only supports Latin characters (A-Z, a-z). Non-Latin
+                                characters (e.g. Chinese, Japanese, Korean, Cyrillic) are not supported and may cause
+                                matching failures.
+POST
+/video/batch-frame
+Start + end image → video transition
+Generate a video that transitions between a start image and an end image.
+Request Body
+Parameter
+Type
+Description
+prompt
+string
+Required
+Description of the transition
+start_image_base64
+string
+Required
+Base64-encoded start frame image
+end_image_base64
+string
+Required
+Base64-encoded end frame image
+aspect_ratio
+string
+Optional
+"16:9"
+ or 
+"9:16"
+. Default: 
+"16:9"
+count
+integer
+Optional
+Number of videos (1–4). Default: 
+1
+POST
+/video/upsample
+Upscale video to 1080p resolution
+Upscale a completed video to 1080p resolution. Use the 
+mediaGenerationId
+                                from a
+                                completed video result.
+Parameter
+Type
+Description
+media_generation_id
+string
+Required
+The 
+mediaGenerationId
+ from a completed video
+aspect_ratio
+string
+Optional
+"16:9"
+ or 
+"9:16"
+. Default: 
+"16:9"
+video_url
+string
+Optional
+                                        Public HTTP/HTTPS URL of the original 720p MP4 file (e.g. the
+fifeUrl
+ or 
+servingBaseUri
+ from the video result).
+                                        When provided, the platform routes the upscale job to the high-performance
+internal FFmpeg worker network
+ instead of the default AI
+                                        model, resulting in faster processing and reduced latency during peak hours.
+Recommended: always pass this field when you have the URL available.
+⚡ Performance tip
+                                Supplying 
+video_url
+ enables direct FFmpeg-based 1080p upscaling on
+                                dedicated VPS nodes. Jobs complete in ~4–8 seconds and the result is a stable
+                                publicly accessible MP4 link — no Google token required.
+📊 Video Status & Results
+GET
+/video/status/:taskId
+Poll video generation status
+Check the current status of a video generation task. Each call triggers a 
+live
+                                    status check
+ against the AI model.
+Response (in progress)
+{
+"success"
+: 
+true
+,
+"data"
+: {
+"task_id"
+: 
+"task_textto_7b9bed6c80ee"
+,
+"type"
+: 
+"text_to_video"
+,
+"status"
+: 
+"polling"
+,
+"created_at"
+: 
+"2026-03-09T10:22:00.031Z"
+,
+"updated_at"
+: 
+"2026-03-09T10:23:45.939Z"
+,
+"progress"
+: { 
+"total"
+: 
+1
+, 
+"completed"
+: 
+0
+ }
+  }
+}
+Response (completed)
+{
+"success"
+: 
+true
+,
+"data"
+: {
+"task_id"
+: 
+"task_textto_7b9bed6c80ee"
+,
+"status"
+: 
+"completed"
+,
+"completed_at"
+: 
+"2026-03-09T10:25:43.217Z"
+,
+"videos"
+: [
+      {
+"sceneId"
+: 
+"f3753407-feb6-4dee-..."
+,
+"fifeUrl"
+: 
+"https://storage.googleapis.com/ai-sandbox-videofx/video/..."
+,
+"servingBaseUri"
+: 
+"https://storage.googleapis.com/..."
+,
+"mediaGenerationId"
+: 
+"CAUSJDQ1OW..."
+,
+"model"
+: 
+"veo_3_1_t2v_fast_ultra_relaxed"
+,
+"seed"
+: 
+788754185
+,
+"aspectRatio"
+: 
+"VIDEO_ASPECT_RATIO_LANDSCAPE"
+,
+"status"
+: 
+"MEDIA_GENERATION_STATUS_SUCCESSFUL"
+      }
+    ],
+"progress"
+: { 
+"total"
+: 
+1
+, 
+"completed"
+: 
+1
+ }
+  }
+}
+POST
+/video/cancel/:taskId
+Cancel a running task and release slot
+Cancel a task that is in progress (
+pending
+, 
+queued
+,
+session_init
+, 
+uploading
+, 
+generating
+, or
+polling
+). Immediately releases the cookie slot so new tasks can start.
+Response (success)
+{
+"success"
+: 
+true
+,
+"data"
+: {
+"task_id"
+: 
+"task_textto_7b9bed6c80ee"
+,
+"status"
+: 
+"failed"
+,
+"error"
+: 
+"Cancelled by user"
+  }
+}
+Response (already completed)
+// HTTP 400
+{
+"success"
+: 
+false
+,
+"error"
+: 
+"Cannot cancel task in 'completed' state"
+}
+💡 Use cancel to free stuck slots
+                                If you encounter 
+All cookie slots full
+ errors, cancel any running tasks
+                                you no longer need to immediately free up slots for new requests.
+POST
+/video/cancel-all
+Cancel ALL running tasks and release all slots
+Cancel every active task for your API key. Use this as an emergency reset when
+                                encountering 
+All cookie slots full
+ errors.
+Response
+{
+"success"
+: 
+true
+,
+"data"
+: {
+"cancelled_count"
+: 
+3
+,
+"tasks"
+: [
+"task_textto_7b9bed6c80ee"
+,
+"task_imaget_a1b2c3d4e5f6"
+,
+"task_multii_f6e5d4c3b2a1"
+    ]
+  }
+}
+GET
+/video/result/:taskId
+Get completed video URLs only
+Returns video URLs if the task is completed. Returns HTTP 202 if still processing.
+GET
+/video/download/:taskId
+Download video as MP4 binary
+Downloads the generated video as an MP4 file. Returns binary data with
+Content-Type: video/mp4
+.
+Query Parameters
+Parameter
+Type
+Description
+video_index
+integer
+Optional
+If multiple videos were generated, select which one (0-indexed). Default:
+0
+curl -o output.mp4 \
+  https://veononstop.org/api/v1/video/download/task_textto_abc123 \
+  -H 
+"X-API-Key: veo_your_key"
+🖼️ Image Generation
+🔄 Asynchronous — Polling Required
+                        Image generation and upscaling are processed asynchronously. Submit a task, receive a 
+task_id
+, and poll the 
+/video/status/:taskId
+ endpoint to get the results, exactly like video generation.
+POST
+/image/banana/generate
+Generate images with Banana model — asynchronous
+Generate 1–8 images using Google's Banana (GemPix) model. Supports three model variants
+                                and two reference image modes: 
+Name-Based Matching
+ (default) and 
+Use All Ref Images
+                                (new). Returns a task ID for polling.
+Request Body
+Parameter
+Type
+Description
+prompt
+string
+Required
+Text description
+num_images
+integer
+Optional
+Number of images (1–8). Default: 
+1
+aspect_ratio
+string
+Optional
+"16:9"
+ (landscape), 
+"9:16"
+ (portrait),
+"1:1"
+ (square), 
+"4:3"
+ (landscape), or
+"3:4"
+ (portrait).
+                                        Default: 
+"16:9"
+model_key
+string
+Optional
+"HARBOR_SEAL"
+ (Lite), 
+"NARWHAL"
+ (Banana 2), or 
+"GEM_PIX_2"
+ (Pro). Default:
+"GEM_PIX_2"
+. See 
+Available Models
+ below.
+project_id
+string
+Optional
+Reuse an existing project ID. If omitted, a new project is created
+                                        automatically.
+reference_images
+array
+Optional
+Array of 
+{name, image_base64, mime_type}
+ objects.
+                                        The 
+name
+ field enables name-based matching (see below)
+use_all_ref_images
+boolean
+Optional
+When 
+true
+, bypasses name-based matching — 
+all
+                                        uploaded reference images (up to 9) are applied to every prompt regardless of
+                                        which names appear in the text. Default: 
+false
+Available Models
+model_key
+Name
+Description
+HARBOR_SEAL
+🌱 Banana 2 Lite
+Lightweight model — faster generation, lower cost
+NARWHAL
+🍌 Banana 2
+Standard quality model
+GEM_PIX_2
+⭐ Banana Pro
+Highest quality model (default)
+Response
+Copy
+{
+"success"
+: 
+true
+,
+"data"
+: {
+"task_id"
+: 
+"img_banana_1715000000"
+,
+"type"
+: 
+"banana_generate"
+,
+"status"
+: 
+"pending"
+,
+"created_at"
+: 
+"2024-05-06T12:00:00.000Z"
+  }
+}
+💡 Retrieving Images & Upscale ID
+                                Poll the 
+/video/status/:taskId
+ endpoint. Once completed, the response will contain an 
+images
+ array.
+                                Each item in 
+images
+ has a 
+fifeUrl
+ (valid for ~30 minutes) and a 
+mediaGenerationId
+. Use the 
+mediaGenerationId
+ as the 
+media_id
+ when calling the upscale endpoint.
+Reference Image Object
+{
+"name"
+: 
+"Alex"
+,              
+// Placeholder name (used for prompt matching)
+"image_base64"
+: 
+"base64_encoded_image_data..."
+,
+"mime_type"
+: 
+"image/jpeg"
+}
+Reference Image Modes
+🎯 Mode 1 (Default): Name-Based Matching
+                                Give each reference image a 
+name
+ matching a word in your prompt. The API
+                                scans each prompt and injects only the images whose names appear.
+Example:
+                                • Image 1: 
+name: "Alex"
+, Image 2: 
+name: "Linda"
+                                • Prompt: 
+"Alex walking"
+ → uses only Image 1
+                                • Prompt: 
+"Alex holding hands with Linda"
+ → uses both images
+                                • Prompt: 
+"sunset over the ocean"
+ → no match, uses no ref images
+🖼️ Mode 2 (New): Use All Ref Images — 
+use_all_ref_images: true
+                                Bypasses name matching entirely. Every prompt receives 
+all
+ uploaded
+                                reference images (up to 9) regardless of what text appears in the prompt. Useful when
+                                you want consistent style or characters applied universally across a batch.
+Example:
+                                • Upload 5 reference images
+                                • Set 
+"use_all_ref_images": true
+                                • Every prompt → all 5 images applied as reference
+Example: Name-Based Matching (Default)
+Copy
+curl -X POST https://veononstop.org/api/v1/image/banana/generate \
+  -H 
+"X-API-Key: veo_your_key"
+ \
+  -H 
+"Content-Type: application/json"
+ \
+  -d 
+'{
+  "prompt": "Alex walking in the park",
+  "reference_images": [
+    {"name": "Alex", "image_base64": "...", "mime_type": "image/jpeg"},
+    {"name": "Linda", "image_base64": "...", "mime_type": "image/jpeg"}
+  ]
+}'
+# Response: {"success":true,"data":{"task_id":"img_banana_123456789"}}
+# Poll the status endpoint with this task_id to get the images.
+Example: Use All Ref Images Mode
+Copy
+curl -X POST https://veononstop.org/api/v1/image/banana/generate \
+  -H 
+"X-API-Key: veo_your_key"
+ \
+  -H 
+"Content-Type: application/json"
+ \
+  -d 
+'{
+  "prompt": "playing in the park",
+  "use_all_ref_images": true,
+  "reference_images": [
+    {"name": "ref1", "image_base64": "...", "mime_type": "image/jpeg"},
+    {"name": "ref2", "image_base64": "...", "mime_type": "image/jpeg"}
+  ]
+}'
+Example: Simple (No References)
+Copy
+curl -X POST https://veononstop.org/api/v1/image/banana/generate \
+  -H 
+"X-API-Key: veo_your_key"
+ \
+  -H 
+"Content-Type: application/json"
+ \
+  -d 
+'{"prompt": "A futuristic city at night", "aspect_ratio": "16:9", "num_images": 2}'
+POST
+/image/banana/upscale
+Upscale image to 2K or 4K — asynchronous
+Upscale a previously generated Banana image to higher resolution (2K or 4K). Returns a task ID. Poll the status endpoint to get the upscaled image URL. Default resolution is 
+2K
+.
+Request Body
+Parameter
+Type
+Description
+media_id
+string
+Required
+mediaGenerationId
+ from the banana/generate response
+project_id
+string
+Required
+project_id
+ from the banana/generate response
+target_resolution
+string
+Optional
+Target upscale resolution. Accepted values:
+                                        • 
+UPSAMPLE_IMAGE_RESOLUTION_2K
+ — 2K 
+(default)
+                                        • 
+UPSAMPLE_IMAGE_RESOLUTION_4K
+ — 4K
+Response
+Copy
+{
+"success"
+: 
+true
+,
+"data"
+: {
+"task_id"
+: 
+"img_ups_1715000000"
+,
+"type"
+: 
+"banana_upscale"
+,
+"status"
+: 
+"pending"
+,
+"created_at"
+: 
+"2024-05-06T12:05:00.000Z"
+  }
+}
+📌 How to use the upscaled image
+                                Poll the 
+/video/status/:taskId
+ endpoint with the returned 
+task_id
+. Once completed, the 
+images
+ array in the response will contain the high-resolution image as a base64 Data URI.
+End-to-End Example (Python)
+Copy
+import
+ requests, time, base64
+API_KEY = 
+"veo_your_api_key"
+BASE    = 
+"https://veononstop.org/api/v1"
+H       = {
+"X-API-Key"
+: API_KEY, 
+"Content-Type"
+: 
+"application/json"
+}
+# Step 1: Request Upscale
+up = requests.post(f
+"{BASE}/image/banana/upscale"
+, json={
+"media_id"
+: 
+"your_media_id_here"
+,
+"project_id"
+: 
+"your_project_id_here"
+,
+"target_resolution"
+: 
+"UPSAMPLE_IMAGE_RESOLUTION_2K"
+}, headers=H).json()
+task_id = up[
+"data"
+][
+"task_id"
+]
+print(f
+"Upscale task created: {task_id}"
+)
+# Step 2: Poll status
+while True
+:
+    status = requests.get(f
+"{BASE}/video/status/{task_id}"
+, headers=H).json()
+    state = status[
+"data"
+][
+"status"
+]
+if
+ state == 
+"completed"
+:
+        img_data = status[
+"data"
+][
+"images"
+][
+0
+][
+"fifeUrl"
+]
+if
+ img_data.startswith(
+"data:"
+):
+            b64_str = img_data.split(
+","
+)[
+1
+]
+            img_bytes = base64.b64decode(b64_str)
+with
+ open(
+"upscaled.jpg"
+, 
+"wb"
+) 
+as
+ f:
+                f.write(img_bytes)
+            print(
+"✅ Upscaled Image saved to upscaled.jpg"
+)
+else
+:
+            print(f
+"✅ Upscaled Image URL: {img_data}"
+)
+break
+elif
+ state == 
+"failed"
+:
+        print(
+"❌ Failed"
+)
+break
+    time.sleep(
+5
+)
+👤 Account
+GET
+/account/info
+Get API key info and plan details
+{
+"success"
+: 
+true
+,
+"data"
+: {
+"username"
+: 
+"john_doe"
+,
+"plan"
+: 
+"standard"
+,
+"concurrent_tasks"
+: 
+12
+,
+"expires_at"
+: 
+"2026-12-31T23:59:59.000Z"
+,
+"key_prefix"
+: 
+"veo_45604bf9"
+  }
+}
+GET
+/account/tasks
+Real-time task usage and concurrency status
+Returns the number of active/queued/completed/failed tasks, cookie slots allocated, and
+                                a list of all tasks (including their current status). Useful for monitoring concurrency
+                                limits and debugging.
+Response
+Copy
+{
+"success"
+: 
+true
+,
+"data"
+: {
+"max_concurrent_tasks"
+: 
+12
+,       
+// Plan limit (cookies × 4)
+"active_tasks"
+: 
+3
+,               
+// Currently running
+"queued_tasks"
+: 
+5
+,               
+// Waiting for a slot
+"completed_tasks"
+: 
+10
+,            
+// Finished successfully
+"failed_tasks"
+: 
+2
+,               
+// Failed or cancelled
+"cookies_allocated"
+: 
+3
+,           
+// Google account sessions in use
+"tasks"
+: [
+      {
+"task_id"
+: 
+"task_textto_a1b2c3d4e5f6"
+,
+"type"
+: 
+"text_to_video"
+,
+"status"
+: 
+"polling"
+,
+"created_at"
+: 
+"2026-03-26T14:00:00.000Z"
+,
+"updated_at"
+: 
+"2026-03-26T14:02:30.000Z"
+      },
+      {
+"task_id"
+: 
+"task_upsamp_g7h8i9j0k1l2"
+,
+"type"
+: 
+"upsample"
+,
+"status"
+: 
+"completed"
+,
+"created_at"
+: 
+"2026-03-26T13:50:00.000Z"
+,
+"updated_at"
+: 
+"2026-03-26T13:55:12.000Z"
+      }
+    ]
+  }
+}
+💡 Concurrency
+                                When 
+active_tasks
+ reaches 
+max_concurrent_tasks
+, new tasks will
+                                be 
+queued
+ and auto-start when a slot frees up. Use this endpoint to monitor
+                                your usage before submitting more tasks.
+📌 Task Retention
+                                Tasks are kept in memory for 2 hours after creation, then automatically cleaned up.
+                                Completed and failed tasks will appear in the list until they expire.
+GET
+/account/usage
+Daily generation limits and slot availability
+Returns daily limits, used counts, reset times, and real-time cookie slot (Google account) availability for the API key's subscription plan.
+Response
+Copy
+{
+"success"
+: 
+true
+,
+"data"
+: {
+"video_used"
+: 
+50
+,
+"video_limit"
+: 
+null
+,          
+// null means unlimited
+"video_remaining"
+: 
+null
+,
+"image_used"
+: 
+120
+,
+"image_limit"
+: 
+2250
+,
+"image_remaining"
+: 
+2130
+,
+"unlimited"
+: 
+false
+,
+"resets_in_seconds"
+: 
+45210
+,   
+// Time until daily usage resets
+"total_slots"
+: 
+3
+,             
+// Total Google accounts for this plan
+"busy_slots"
+: 
+1
+,              
+// Accounts currently generating
+"available_slots"
+: 
+2
+// Accounts free for immediate processing
+  }
+}
+⚠️ Error Handling
+All errors follow this format:
+{
+"success"
+: 
+false
+,
+"error"
+: 
+"Description of what went wrong"
+}
+HTTP Code
+Meaning
+400
+Bad Request — missing or invalid parameters
+401
+Unauthorized — invalid, expired, or missing API key
+404
+Not Found — task ID does not exist or belongs to another user
+429
+Rate Limited — too many requests, slow down
+500
+Server Error — internal error, try again

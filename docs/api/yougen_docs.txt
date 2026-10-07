@@ -1,0 +1,107 @@
+# YouGen Public API (for LLMs / agents)
+
+Base URL: https://yougen.io
+Human docs: https://yougen.io/api-docs
+OpenAPI JSON: https://yougen.io/api/v1/openapi.json
+This file: https://yougen.io/api/v1/llms.txt
+
+## Auth
+Every authenticated request needs header:
+  X-API-Key: sf_<secret>
+(or Authorization: Bearer sf_<secret>)
+
+Keys are created by the human user at https://yougen.io/account (section "API-ключи").
+License key dg_ is ONLY for the website UI — never use it as X-API-Key.
+
+## Core async flow (ALWAYS use this)
+1. POST https://yougen.io/api/v1/generations  with JSON body → response { id, status: "queued", ... }
+2. Poll GET https://yougen.io/api/v1/generations/{id} every 2–3 seconds
+3. Stop when status is "succeeded" or "failed"
+4. On succeeded: GET .../generations/{id}/content (binary, same API key). download_url is the same authenticated URL.
+
+Statuses: queued | running | succeeded | failed
+
+## Create image
+POST /api/v1/generations
+{
+  "model": "nano-banana-2",
+  "prompt": "cinematic portrait, soft light, 35mm",
+  "aspect_ratio": "16:9"
+}
+
+Common image models: nano-banana-2, nano-banana-pro, nano-banana-2-lite (imagen-4 is a deprecated alias for lite)
+Aspect ratios typically: 1:1, 16:9, 9:16, 4:3, 3:4
+
+## Create video (text-to-video)
+POST /api/v1/generations
+{
+  "model": "veo-3.1-fast",
+  "prompt": "slow push-in on a rainy neon street at night",
+  "aspect_ratio": "16:9"
+}
+
+Video models: veo-3.1-fast, veo-3.1-quality, omni-flash
+
+## Image-to-video
+Upload first (optional):
+POST /api/v1/files  { "data": "data:image/png;base64,..." }  → { "id": "<file_id>" }
+
+Then:
+POST /api/v1/generations
+{
+  "model": "veo-3.1-fast",
+  "prompt": "the subject turns and smiles",
+  "inputs": ["<file_id_or_data_uri>"],
+  "aspect_ratio": "16:9"
+}
+
+Start+end frames: set "keyframes": true and pass two inputs.
+
+## Batch / many prompts
+POST /api/v1/generations
+{ "model": "nano-banana-2", "prompts": ["prompt a", "prompt b"], "aspect_ratio": "16:9" }
+
+or POST /api/v1/generations/batch with items: [{ "prompt": "..." }, ...]
+
+## Cancel
+DELETE /api/v1/generations/{id}
+POST /api/v1/operations/cancel  { "operation_ids": ["id1","id2"] }
+POST /api/v1/operations/cancel-all
+
+## Usage / quotas
+GET /api/v1/usage
+Daily image/video limits come from the user's subscription plan (same as Studio UI).
+HTTP 429 = daily quota exhausted.
+
+## Discover models/ops
+GET /api/v1/models
+GET /api/v1/capabilities
+GET /api/v1/capabilities/{operation_id}
+You may pass "operation" instead of "model" on create (canonical id from capabilities).
+
+## Prompt helper (optional)
+POST /api/v1/prompts/generate
+{ "user_prompt": "make a cinematic prompt about a fox in snow" }
+→ { "generated_text": "..." }
+
+## Optional webhook
+On create, "webhook_url": "https://your.server/hook"
+YouGen POSTs generation status when the job finishes.
+The payload has no signed download_url (capability leak). Fetch the file with the API key:
+GET /api/v1/generations/{id}/content
+Header X-YouGen-Signature: sha256=<HMAC-SHA256 of the raw JSON body with your webhook signing secret from Account → API keys (not APP_SECRET).>
+
+## Errors
+401 invalid/missing API key
+403 license inactive/expired or user blocked
+400 validation / bad model / bad inputs
+404 generation not found
+429 daily plan quota
+409 content not ready yet (on /content)
+
+## Rules for agents
+- Prefer short English prompts unless the user asks otherwise.
+- Always poll; do not assume instant results.
+- Prefer /content for durable download with the API key.
+- Never print the full sf_ secret back to the user after setup.
+- Check GET /api/v1/usage before large batches.

@@ -1,0 +1,8 @@
+
+  Voicer API — Docs
+      Voicer API Документация
+        RU
+        EN
+        Тёмная
+        @mat3u
+    © Voicer API · /health · openapi.json
