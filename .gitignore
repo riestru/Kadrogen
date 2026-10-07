@@ -1,0 +1,13 @@
+config.json
+jobs/
+output/
+dist*/
+build/
+__pycache__/
+*.log
+report.txt
+ffmpeg/*.exe
+ffmpeg/*.dll
+*.mp3
+!music/*.mp3
+update/
