@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kadro.Gen · инструкция</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#f4f6f9; --bg2:#fff; --ink:#0f1419; --ink2:#5f6b78; --line:#d6dde6; --line2:#e9edf2; --acc:#00b4e6; --acc2:#0a7bd6; --ok:#12b886; --warn:#e8590c; --err:#e03131; --gridc:rgba(15,20,25,.045); }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 "Exo 2", "Segoe UI", system-ui, sans-serif; }
+  body::before { content:""; position:fixed; inset:0; z-index:-1; background-image:linear-gradient(var(--gridc) 1px, transparent 1px), linear-gradient(90deg, var(--gridc) 1px, transparent 1px); background-size:72px 72px; }
+  .wrap { max-width:960px; margin:0 auto; padding:40px 28px 80px; }
+  .cut { clip-path:polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px); }
+  .hero { background:var(--bg2); border:1.5px solid var(--line); padding:36px 40px 30px; margin-bottom:26px; box-shadow:0 14px 40px rgba(15,30,50,.06); position:relative; }
+  .hero::after { content:""; position:absolute; left:0; right:0; bottom:0; height:4px; background:linear-gradient(90deg, var(--acc2), var(--acc)); }
+  .logo { font:300 44px/1 "Exo 2", sans-serif; letter-spacing:.42em; text-transform:uppercase; display:flex; align-items:center; gap:16px; }
+  .logo::before { content:""; width:14px; height:14px; background:var(--acc); transform:rotate(45deg); box-shadow:0 0 14px rgba(0,180,230,.8); }
+  .logo .d { color:var(--acc2); font-weight:600; letter-spacing:0; margin:0 .3em; }
+  .logo .g { font-weight:600; background:linear-gradient(90deg, var(--acc2), var(--acc)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tag { margin-top:14px; font:500 12px/1 "Exo 2", sans-serif; letter-spacing:.42em; text-transform:uppercase; color:var(--ink2); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  .toc { display:flex; flex-wrap:wrap; gap:8px; margin:22px 0 0; }
+  .toc a { font:600 11px/1 "Exo 2", sans-serif; letter-spacing:.22em; text-transform:uppercase; color:var(--ink2); text-decoration:none; border:1.5px solid var(--line); padding:10px 14px; background:var(--bg); }
+  .toc a:hover { color:var(--acc2); border-color:var(--acc2); }
+  h2 { font:600 13px/1 "Exo 2", sans-serif; letter-spacing:.42em; text-transform:uppercase; color:var(--acc2); margin:48px 0 16px; display:flex; align-items:center; gap:14px; }
+  h2::after { content:""; flex:1; height:1px; background:linear-gradient(90deg, var(--line), transparent); }
+  h2 .n { font-weight:300; color:var(--ink2); letter-spacing:.1em; }
+  h3 { font:600 17px/1.3 "Exo 2", sans-serif; letter-spacing:.06em; margin:22px 0 8px; }
+  p { margin:0 0 12px; }
+  b { font-weight:600; }
+  code { font:13px/1.4 Consolas, "Cascadia Mono", monospace; background:var(--line2); padding:2px 6px; border:1px solid var(--line); color:var(--ink); }
+  a { color:var(--acc2); text-decoration:none; } a:hover { text-decoration:underline; }
+  .card { background:var(--bg2); border:1.5px solid var(--line); padding:20px 24px; margin:0 0 14px; box-shadow:0 8px 24px rgba(15,30,50,.05); break-inside:avoid; }
+  .card.ok { border-left:4px solid var(--ok); } .card.warn { border-left:4px solid var(--warn); } .card.acc { border-left:4px solid var(--acc2); }
+  .card .t { font:600 12px/1 "Exo 2", sans-serif; letter-spacing:.3em; text-transform:uppercase; color:var(--acc2); margin-bottom:10px; }
+  .card.warn .t { color:var(--warn); } .card.ok .t { color:var(--ok); }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; } .grid3 { display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; }
+  .grid2 .card, .grid3 .card { margin:0; }
+  .steps { counter-reset:s; list-style:none; margin:0; padding:0; }
+  .steps li { position:relative; padding:16px 20px 16px 74px; background:var(--bg2); border:1.5px solid var(--line); margin-bottom:10px; break-inside:avoid; }
+  .steps li::before { counter-increment:s; content:"0" counter(s); position:absolute; left:22px; top:14px; font:300 28px/1 "Exo 2", sans-serif; color:var(--acc2); letter-spacing:.05em; }
+  .steps li b:first-child { display:block; font:600 14px/1.3 "Exo 2", sans-serif; letter-spacing:.2em; text-transform:uppercase; margin-bottom:6px; }
+  table { width:100%; border-collapse:collapse; background:var(--bg2); border:1.5px solid var(--line); margin:0 0 14px; font-size:14.5px; break-inside:avoid; }
+  th { text-align:left; font:600 11px/1.3 "Exo 2", sans-serif; letter-spacing:.24em; text-transform:uppercase; color:var(--ink2); padding:12px 14px; border-bottom:1.5px solid var(--line); background:var(--bg); }
+  td { padding:11px 14px; border-bottom:1px solid var(--line2); vertical-align:top; }
+  tr:last-child td { border-bottom:0; }
+  .k { display:inline-block; font:600 11px/1 "Exo 2", sans-serif; letter-spacing:.18em; text-transform:uppercase; color:var(--acc2); border:1.5px solid var(--acc2); padding:5px 8px; margin:0 2px; white-space:nowrap; }
+  .kk { display:inline-block; font:600 11px/1 "Exo 2", sans-serif; letter-spacing:.18em; text-transform:uppercase; background:var(--ink); color:#fff; padding:6px 9px; margin:0 2px; white-space:nowrap; }
+  .faq .card { margin-bottom:10px; }
+  .faq .q { font:600 15px/1.35 "Exo 2", sans-serif; margin-bottom:6px; }
+  .faq p:last-child { margin:0; }
+  ul { margin:0 0 12px; padding-left:20px; } li { margin-bottom:5px; }
+  .muted { color:var(--ink2); font-size:14px; }
+  .foot { margin-top:60px; text-align:center; font:500 12px/1 "Exo 2", sans-serif; letter-spacing:.24em; text-transform:uppercase; color:var(--ink2); }
+  @media (max-width:700px) { .grid2, .grid3 { grid-template-columns:1fr; } .hero { padding:26px 22px; } .logo { font-size:30px; } }
+  @media print {
+    body { background:#fff; font-size:12.5px; } body::before { display:none; }
+    .wrap { max-width:none; padding:0; } .toc { display:none; }
+    .card, .steps li, table, .hero { box-shadow:none; }
+    h2 { margin-top:28px; break-after:avoid; }
+    @page { margin:16mm 14mm; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero cut">
+    <div class="logo"><span>Kadro</span><span class="d">.</span><span class="g">Gen</span></div>
+    <div class="tag"><span>озвучка или сценарий → готовое видео</span><span>инструкция · версия 1.1</span></div>
+    <div class="toc">
+      <a href="#what">Что это</a><a href="#install">Установка</a><a href="#keys">Ключи</a><a href="#steps">Шесть шагов</a>
+      <a href="#modes">Режимы</a><a href="#time">Время и кредиты</a><a href="#result">Результат</a><a href="#update">Обновления</a>
+      <a href="#fix">Если не работает</a><a href="#tips">Советы</a>
+    </div>
+  </div>
+
+  <h2 id="what"><span class="n">01</span> Что это</h2>
+  <p>Kadro.Gen превращает голос в видео. Вы даёте озвучку в mp3, текст сценария или ссылку на ролик YouTube. Программа сама распознаёт речь, режет её на сцены по 3–7 секунд, придумывает кадр под каждую сцену, рисует картинки, при желании оживляет их в видео и собирает ролик 1920×1080 со звуком, переходами и субтитрами.</p>
+  <div class="grid3">
+    <div class="card acc cut"><div class="t">Бесплатно</div>Программа ничего не стоит. Платите только сервисам, которые рисуют картинки и озвучивают, по своим ключам.</div>
+    <div class="card acc cut"><div class="t">Герои одинаковые</div>Программа описывает каждого героя один раз, рисует его портрет и держится за него во всех кадрах.</div>
+    <div class="card acc cut"><div class="t">Ничего не теряется</div>Всё сделанное сохраняется. Упало или остановили — запустите тот же файл, продолжит с места.</div>
+  </div>
+  <p class="muted" style="margin-top:12px">Нужны: Windows 10 или 11, интернет и хотя бы один ключ сервиса картинок. Программа работает только на Windows.</p>
+
+  <h2 id="install"><span class="n">02</span> Установка</h2>
+  <ol class="steps">
+    <li><b>Скачайте архив</b>Файл <code>KadroGen-….zip</code> из папки на Google Диске, ссылка в канале. Скачивайте только оттуда.</li>
+    <li><b>Распакуйте в отдельную папку</b>Правой кнопкой по архиву → «Извлечь всё». Лучше в простую папку вроде <code>C:\KadroGen</code> или <code>D:\KadroGen</code>. Не на рабочий стол и не в папку, которую синхронизирует OneDrive: оттуда программа может не найти свои файлы. Из самого архива не запускайте.</li>
+    <li><b>Откройте KadroGen.exe</b>Файл с синим ромбиком. Ярлык на рабочий стол: правой кнопкой → «Отправить» → «Рабочий стол».</li>
+    <li><b>Синее окно «Windows защитила ваш компьютер»</b>Его показывают всем программам без платной подписи. Нажмите <b>Подробнее</b>, потом <b>Выполнить в любом случае</b>. Это один раз.</li>
+  </ol>
+  <div class="card warn cut"><div class="t">Антивирус удалил KadroGen.exe или пишет «Wacatac»</div>Это ложное срабатывание облачной проверки Windows, оно бывает у программ на Python. Dr.Web, ESET и VirusTotal угроз не находят, файл отправлен в Microsoft на разбор. Откройте «Безопасность Windows» → «Журнал защиты» → запись про KadroGen → «Действия» → «Восстановить». Или добавьте папку программы в исключения: «Защита от вирусов» → «Параметры» → «Исключения».</div>
+
+  <h2 id="keys"><span class="n">03</span> Ключи: где взять и что даёт</h2>
+  <p>Ключ — длинный набор букв, который сервис выдаёт после оплаты. Для старта хватит одного: <b>fast-gen</b> умеет всё сразу, и речь, и тексты, и картинки. Остальные сервисы можно добавить позже, тогда работа делится между ними.</p>
+  <table>
+    <tr><th>Сервис</th><th>Что делает</th><th>Где взять</th><th>Сколько стоит</th></tr>
+    <tr><td><b>fast-gen</b></td><td>речь, тексты, картинки, видео. Рекомендуем первым</td><td><a href="https://t.me/logovo_shop_bot">@logovo_shop_bot</a> · <a href="https://fast-gen.ai/">fast-gen.ai</a></td><td>подписка: Lite $40 — 500 кредитов в час, Medium $80 — 2000, Pro $120 — 4000. Видео в тарифах Video</td></tr>
+    <tr><td><b>royaltechno</b></td><td>картинки и видео</td><td><a href="https://t.me/royaltechno_ai_bot">@royaltechno_ai_bot</a></td><td>2 цента за картинку, 2–5 центов за клип, 100 бесплатных на пробу</td></tr>
+    <tr><td><b>veononstop</b></td><td>картинки и видео</td><td><a href="https://t.me/veononstop">t.me/veononstop</a></td><td>подписка, цены в боте</td></tr>
+    <tr><td><b>yougen</b></td><td>картинки и видео</td><td><a href="https://yougen.io/">yougen.io</a></td><td>по тарифам сайта</td></tr>
+    <tr><td><b>secretslider</b></td><td>только картинки, пакетами</td><td><a href="https://secretslider.com">secretslider.com</a></td><td>100 картинок бесплатно, потом $25 в месяц</td></tr>
+    <tr><td><b>Google</b></td><td>картинки и видео напрямую от Google, нужна карта</td><td><a href="https://aistudio.google.com/apikey">aistudio.google.com</a></td><td>2–13 центов за картинку, клип около $1</td></tr>
+  </table>
+  <div class="grid2">
+    <div class="card cut"><div class="t">Если fast-gen не выбран</div>Программе нужно, чем понять речь и придумать кадры. Появятся строки «Распознавание речи» (Whisper от OpenAI или AssemblyAI) и «Тексты сцен» (OpenAI, Claude или Gemini). У OpenAI нужен баланс на <a href="https://platform.openai.com">platform.openai.com</a>.</div>
+    <div class="card cut"><div class="t">Озвучка из текста</div><b>Edge</b> — бесплатно и без ключа, голоса Microsoft, по-русски Дмитрий и Светлана, звучат ровно. <b>VoiceGen, Voicer, Lumean</b> — голоса ElevenLabs, живее, нужен их ключ. У Lumean при создании ключа выберите права «full».</div>
+  </div>
+  <div class="grid2" style="margin-top:14px">
+    <div class="card cut"><div class="t">Озвучка «fast-gen · Gemini»</div>Если у вас есть ключ fast-gen, отдельный сервис озвучки не нужен: в списке озвучки выберите «fast-gen · Gemini». 70 голосов с русскими описаниями характера, кнопка «Список» их покажет. За фразу списывается 10 «запросных» кредитов — это отдельный счётчик, кредиты картинок не тратятся.</div>
+    <div class="card cut"><div class="t">Свой адрес API</div>Под строкой модели текстов есть поле «Свой адрес API». Оно для тех, у кого официальный адрес OpenAI, Claude или Gemini не открывается и сервис отвечает ошибкой 401 или 403: впишите адрес своего прокси или зеркала. Пусто — используется официальный адрес. Поле действует и на рерайт.</div>
+  </div>
+  <p class="muted" style="margin-top:12px">Кнопка <span class="k">Проверить</span> рядом с ключом не просто смотрит доступ: она заставляет сервис реально ответить и показывает тариф, лимиты и какая модель отвечает. Ключи хранятся только на вашем компьютере, в файле <code>config.json</code> рядом с программой.</p>
+
+  <h2 id="steps"><span class="n">04</span> Шесть шагов до видео</h2>
+  <ol class="steps">
+    <li><b>Сервисы</b>Нажмите на плитку сервиса картинок. Можно несколько сразу. Знак «?» на плитке — подсказка.</li>
+    <li><b>Режим</b>Три плитки: «Только картинки», «50 на 50», «Только видео». Ниже ползунок <b>«Оживить первые»</b> и переключатель <b>Скорость / Качество</b>. Подробно в следующем разделе.</li>
+    <li><b>Опции</b>Рерайт сценария, озвучка из текста, моушн-дизайн, субтитры. Если ничего не нужно — «Нет, далее».</li>
+    <li><b>Доступ</b>Вставьте ключи. Файл озвучки перетащите прямо в окно или выберите кнопкой. Для сценария вставьте текст, выберите сервис озвучки и, если хотите, голос по кнопке «Список». Ключи запоминаются.</li>
+    <li><b>Проверка</b>Сверху <b>прогноз</b>: сколько сцен, кредитов и примерно времени, с учётом лимитов вашего тарифа. Если долго, там же ссылка «Переключить» на быстрый режим. Ниже все настройки, их можно менять прямо здесь, и текст сценария, его можно править. Жмите <span class="kk">Поехали</span>.</li>
+    <li><b>Создание</b>Слева кольцо с процентами и этапы: речь, сцены, референсы, картинки, оживление, сборка, субтитры. Справа кадры появляются по мере готовности. Если программа ждёт лимит сервиса, под кольцом появится таймер с пояснением, это не ошибка. <span class="k">Стоп</span> останавливает за пару секунд, сделанное сохраняется. В конце кнопки «Открыть видео» и «Папка».</li>
+  </ol>
+
+  <h2 id="modes"><span class="n">05</span> Режимы, качество, оживление</h2>
+  <table>
+    <tr><th>Режим</th><th>Что получится</th><th>Скорость и цена</th></tr>
+    <tr><td><b>Только картинки</b></td><td>каждая сцена — картинка с плавным движением камеры: наезд, панорама, статика по кругу</td><td>быстро и дёшево, 1 кредит за сцену в «Скорости»</td></tr>
+    <tr><td><b>50 на 50</b></td><td>каждая вторая картинка оживает в короткое видео</td><td>в разы дольше, нужны видео-кредиты</td></tr>
+    <tr><td><b>Только видео</b></td><td>оживает каждая сцена</td><td>самый долгий и дорогой, для коротких роликов</td></tr>
+  </table>
+  <div class="grid2">
+    <div class="card cut"><div class="t">Оживить первые N</div>Ползунок на экране режима, от 0 до 150. Первые N сцен станут видео, остальные останутся картинками. Зритель решает, смотреть ли, в первые секунды, и туда логично отдать оживление, когда видео-кредитов мало. В «Только видео» ползунок не нужен и не показывается.</div>
+    <div class="card cut"><div class="t">Скорость или Качество</div><b>Скорость</b>: простые модели, 1 кредит за картинку у fast-gen, героев в кадре описывает только текст. <b>Качество</b>: Nano Banana, 4 кредита за картинку, программа рисует портрет каждого героя и показывает его модели на каждой сцене, герои узнаваемы весь ролик.</div>
+  </div>
+  <div class="grid2" style="margin-top:14px">
+    <div class="card cut"><div class="t">Моушн-дизайн</div>Плавные переходы между сценами: затемнение, сдвиг, раскрытие. Ролик выглядит смонтированным. Сборка дольше на несколько минут.</div>
+    <div class="card cut"><div class="t">Субтитры</div>Текст озвучки вшивается в видео красивым шрифтом, точно по словам. Отдельный файл <code>.srt</code> сохраняется в папку <code>output\subtitles</code>.</div>
+  </div>
+  <div class="grid2" style="margin-top:14px">
+    <div class="card cut"><div class="t">HD-картинки</div>Сервисы отдают картинки размером 1376×768, и программа растягивает их до Full HD — отсюда лёгкая мягкость. С галочкой «HD-картинки» Nano Banana рисует вдвое крупнее, и кадр заметно резче. Пока только через fast-gen в режиме «Качество», стоит 8 кредитов за картинку вместо 4. Сама картинка делается чуть дольше; заметно дольше станет, только если ролик упирается в часовой лимит кредитов — он кончится вдвое быстрее.</div>
+    <div class="card cut"><div class="t">Оживление без ожидания</div>Оживление начинается, как только готова первая картинка, а не после всех. Пока идут картинки, сообщения оживления пишутся в журнал, а на экране они появятся, когда картинки закончатся. Портреты героев тоже рисуются одновременно с промптами — ролик в целом готов быстрее.</div>
+  </div>
+  <div class="card cut" style="margin-top:14px"><div class="t">Рерайт сценария</div>Даёте ссылку на чужой ролик YouTube или свой текст. Программа переписывает его заново: убирает призывы подписаться, делает цепляющее начало, укладывает в нужное число слов на нужном языке. Переписывает fast-gen, ChatGPT, Claude или Gemini по вашему ключу. Результат показывается на экране проверки, его можно поправить руками, потом он озвучивается. Если у ролика нет субтитров, программа скачает звук и распознает его сама.</div>
+
+  <h2 id="time"><span class="n">06</span> Сколько времени и кредитов</h2>
+  <p>Ролик на 5 минут — примерно 50–60 сцен. На 60 минут — около 600. У fast-gen оплата подпиской с лимитом <b>в час</b>: на Lite это 500 кредитов, то есть 500 картинок в «Скорости» или 125 в «Качестве». Когда лимит часа кончается, программа не ломается: показывает таймер, ждёт и продолжает сама.</p>
+  <table>
+    <tr><th>Ролик</th><th>Скорость, картинки</th><th>Качество, картинки</th></tr>
+    <tr><td>5 минут, ~60 сцен</td><td>около 10 минут</td><td>около 15 минут</td></tr>
+    <tr><td>30 минут, ~320 сцен</td><td>около 40 минут</td><td>около 2,5 часов на Lite, из них 2 часа ожидание лимита</td></tr>
+    <tr><td>2 часа, ~1100 сцен</td><td>около 2,5 часов</td><td>около 9 часов на Lite</td></tr>
+  </table>
+  <p class="muted">Прогноз на экране проверки примерный, плюс-минус треть: он не знает заранее, сколько раз сервис попросит подождать. Для длинных роликов выбирайте «Скорость» либо несколько сервисов сразу, тогда сцены делятся между ними. Тексты и распознавание речи у fast-gen бесплатны.</p>
+
+  <h2 id="result"><span class="n">07</span> Результат и повторные запуски</h2>
+  <div class="grid2">
+    <div class="card cut"><div class="t">Где видео</div>В папке <code>output</code> рядом с программой, кнопка «Папка» на последнем экране открывает её. Рядом текст сценария, если озвучивали из текста, и папка <code>subtitles</code> с файлом .srt.</div>
+    <div class="card cut"><div class="t">Тот же файл — продолжение</div>Программа узнаёт ролик по файлу озвучки. Выберите тот же mp3 и нажмите «Поехали»: готовые картинки и клипы не делаются заново, доделывается только недостающее. Файл озвучки не переименовывайте, иначе это будет новый ролик.</div>
+  </div>
+  <div class="grid2" style="margin-top:14px">
+    <div class="card cut"><div class="t">Ещё одно видео</div>Одновременно программа делает одно видео, вторую копию открыть нельзя. Закончилось — кнопка «Ещё одно», выбираете следующий файл.</div>
+    <div class="card cut"><div class="t">Место на диске</div>На первом экране видно, сколько занимают готовые видео и заготовки; рядом ссылки «открыть папку с видео» и «очистить заготовки». Промежуточные файлы лежат в папке <code>jobs</code>, по папке на ролик. После успешной сборки программа сама убирает всё лишнее и оставляет только картинки, клипы и озвучку, чтобы повторный запуск ничего не рисовал заново. Папки заданий, к которым не прикасались 30 дней, удаляются автоматически. Готовые видео в <code>output</code> не трогаются никогда.</div>
+  </div>
+
+  <h2 id="update"><span class="n">08</span> Обновления</h2>
+  <p>Программа сама проверяет папку на Диске. Если есть новая версия, она тихо скачивается в фоне, а на первом экране появляется строка «Версия … скачана — установится сама, когда вы закроете программу». Ничего нажимать не нужно: закрыли программу, она обновилась, при следующем запуске вы уже на новой версии. Если хочется сразу — кнопка «Установить сейчас». Ключи, настройки, видео и заготовки при обновлении сохраняются.</p>
+  <p class="muted"><b>Важно:</b> в версиях до 1.0 кнопка «Установить» работала ненадёжно. Если у вас версия ниже 1.0, один раз скачайте архив с Диска и распакуйте поверх папки программы, дальше обновления пойдут по кнопке. Если кнопки нет, а есть только ссылка «скачать вручную», значит программа лежит там, куда нельзя писать: в архиве или в Program Files. Скачайте архив и распакуйте поверх старой папки, ключи останутся.</p>
+
+  <h2 id="fix"><span class="n">09</span> Если не работает</h2>
+  <div class="faq">
+    <div class="card cut"><div class="q">«Failed to load Python DLL … python312.dll»</div><p>Программа не нашла свои файлы. Чаще всего она распакована на рабочий стол, который синхронизирует OneDrive. Распакуйте архив заново в простую папку, например <code>C:\KadroGen</code>. Если не помогло, проверьте «Журнал защиты» антивируса, он мог удалить файлы, и поставьте <a href="https://aka.ms/vs/17/release/vc_redist.x64.exe">Visual C++ Redistributable</a>.</p></div>
+    <div class="card cut"><div class="q">Окно с ошибкой «Python.Runtime» при запуске</div><p>Правой кнопкой по скачанному архиву → «Свойства» → галочка «Разблокировать» → OK. Распакуйте заново.</p></div>
+    <div class="card cut"><div class="q">«Ключ не принят»</div><p>Скопируйте ключ целиком, без пробелов. У OpenAI нужен баланс на счёте, у Lumean права «full». Кнопка «Проверить» покажет, что именно не так.</p></div>
+    <div class="card cut"><div class="q">Под кольцом «Жду лимит fast-gen» и таймер</div><p>Кончился часовой лимит тарифа. Это не ошибка: ничего не нажимайте, программа дождётся и продолжит. Сколько всего займёт, было видно в прогнозе.</p></div>
+    <div class="card cut"><div class="q">«Сервис перегружен», «No accounts available», «Generation failed»</div><p>Проблема на стороне сервиса. Программа сама ждёт и повторяет, а если картинка так и не вышла, дорисует её другой моделью или другим сервисом с ключом. Если всё же упало, запустите тот же файл ещё раз.</p></div>
+    <div class="card cut"><div class="q">«Отказано в доступе» к файлу .json</div><p>Файл в этот момент держал антивирус. Программа повторяет запись сама, а если всё же упало, нажмите «Поехали» ещё раз, ничего не потеряно.</p></div>
+    <div class="card cut"><div class="q">В видео субтитры двоятся</div><p>Это плеер: рядом с видео лежит файл .srt, и плеер накладывает его поверх вшитых. В новых версиях файл лежит в папке <code>subtitles</code>. Если видео старое, просто уберите .srt из папки <code>output</code>.</p></div>
+    <div class="card cut"><div class="q">Claude отвечает ошибкой 400, работает только Haiku</div><p>Обновите программу: в старых версиях новые модели Claude не принимались из-за устаревшего параметра запроса.</p></div>
+    <div class="card cut"><div class="q">«Имя файла или его расширение имеет слишком большую длину»</div><p>Старая версия падала так на длинных роликах с моушн-дизайном. Обновитесь и запустите тот же файл, всё нарисованное подхватится.</p></div>
+    <div class="card cut"><div class="q">Обновление через кнопку не сработало</div><p>Скачайте архив с Диска вручную и распакуйте поверх папки программы. Ключи и задания останутся.</p></div>
+    <div class="card ok cut"><div class="q">Нужна помощь</div><p>На экране создания есть кнопка <span class="k">Отчёт</span>: она копирует в буфер обмена версию, настройки без ключей, последнюю ошибку и журнал. Вставьте это в сообщение <a href="https://t.me/Grisha_Youtuber_2003">t.me/Grisha_Youtuber_2003</a>. Если до этого экрана не дошло, приложите файл <code>videogen.log</code> из папки программы.</p></div>
+  </div>
+
+  <h2 id="tips"><span class="n">10</span> Советы для хорошего результата</h2>
+  <ul>
+    <li><b>Конкретика в тексте.</b> Программа рисует то, что сказано. «Рыба длиной одиннадцать метров рядом с водолазом» даст точный кадр, «удивительное существо» — случайный.</li>
+    <li><b>Имена героям.</b> Если в сценарии «дед Николай» и «Марина», программа опишет их один раз и будет держать одинаковыми. Безымянный «мужчина» в каждой сцене может выглядеть по-разному.</li>
+    <li><b>Качество для историй с героями</b>, скорость для обзоров, фактов и длинных роликов.</li>
+    <li><b>Оживите первые 10–20 сцен</b>, если видео-кредитов мало. Дальше картинки с движением камеры смотрятся нормально.</li>
+    <li><b>Чистая озвучка.</b> Без музыки и шумов под голосом распознавание точнее, а значит и сцены режутся ровнее.</li>
+    <li><b>Не переименовывайте mp3</b> между запусками и не переносите папку программы во время создания.</li>
+  </ul>
+
+  <div class="foot">сделано <a href="https://t.me/Grisha_Youtuber_2003">Гришей Ютубером</a></div>
+</div>
+</body>
+</html>
